@@ -10,6 +10,8 @@ output:
     toc_float: yes
 ---
 
+[https://github.com/hinarh/HW4sds315](https://github.com/hinarh/HW4sds315)
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
@@ -87,7 +89,7 @@ From the boxplots, we can see that gas stations with highway access have a highe
 I claim shell does not charge more than other brands.
 
 ```{r echo=FALSE}
-gasprices_subset <- gasprices %>%
+gasprices_subset = gasprices %>%
   mutate(Brand_Group = ifelse(Brand == "Shell", "Shell", "Non-Shell")) %>%
   group_by(Brand_Group)
 
@@ -109,7 +111,7 @@ From these boxplots, we can see that the boxplot of shell has a larger range, bu
 ```{r echo=FALSE}
 sclass = read_csv("sclass.csv", show_col_types = FALSE)
 
-filtered_sclass_a <- sclass %>%
+filtered_sclass_a = sclass %>%
   filter(year == 2011, trim == "63 AMG")
 
 boot_mean_mileage_a = do(1000) * mean(mileage ~ 1, data = resample(filtered_sclass_a))
@@ -121,10 +123,10 @@ I am 95% confident that the true mean mileage for 2011 S-Class 63 AMGs lies betw
 ## Part B
 
 ```{r echo=FALSE}
-filtered_sclass_b <- sclass %>%
+filtered_sclass_b = sclass %>%
   filter(year == 2014, trim == "550")
 
-filtered_sclass_b <- filtered_sclass_b %>%
+filtered_sclass_b = filtered_sclass_b %>%
   mutate(isBlack = ifelse(color == "Black", TRUE, FALSE))
 
 boot_prop_black = do(1000) * prop(isBlack ~ 1, data=resample(filtered_sclass_b))
@@ -140,7 +142,7 @@ I am 95% confident that the true proportion of black for 2014 S-Class 550 trim c
 ```{r echo=FALSE}
 pilotsurvey = read_csv("nbc_pilotsurvey.csv", show_col_types = FALSE)
 
-filtered_pilotsurvey_a <- pilotsurvey %>%
+filtered_pilotsurvey_a = pilotsurvey %>%
   filter(Show %in% c("Living with Ed", "My Name is Earl"))
 
 boot_diffmean_edearl = do(1000) * diffmean(Q1_Happy ~ Show, data=resample(filtered_pilotsurvey_a))
@@ -155,7 +157,7 @@ conf_diffmean_edearl = confint(boot_diffmean_edearl, level = 0.95)
 ## Part B
 
 ```{r echo=FALSE}
-filtered_pilotsurvey_b <- pilotsurvey %>%
+filtered_pilotsurvey_b = pilotsurvey %>%
   filter(Show %in% c("The Biggest Loser", "The Apprentice: Los Angeles"))
 
 boot_diffmean_loserLA = do(1000) * diffmean(Q1_Annoyed ~ Show, data=resample(filtered_pilotsurvey_b))
@@ -170,7 +172,7 @@ conf_diffmean_loserLA = confint(boot_diffmean_loserLA, level = 0.95)
 ## Part C
 
 ```{r echo=FALSE}
-filtered_pilotsurvey_c <- pilotsurvey %>%
+filtered_pilotsurvey_c = pilotsurvey %>%
   filter(Show == "Dancing with the Stars")
 
 boot_prop_stars = do(1000) * (sum(resample(filtered_pilotsurvey_c$Q2_Confusing) >= 4) / nrow(resample(filtered_pilotsurvey_c)))
@@ -188,7 +190,7 @@ conf_prop_stars = confint(boot_prop_stars, level = 0.95)
 ```{r echo=FALSE}
 ebay = read_csv("ebay.csv", show_col_types = FALSE)
 
-ebay <- ebay %>%
+ebay = ebay %>%
   mutate(rev_ratio = rev_after / rev_before)
 
 boot_diffratio_ebay = do(10000) * diffmean(rev_ratio ~ adwords_pause, data=resample(ebay))
