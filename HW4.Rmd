@@ -1,0 +1,201 @@
+---
+title: "HW4"
+author: "Nihar Harkare nh23432"
+date: "2024-02-17"
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(mosaic)
+```
+
+# Problem 1
+
+## Theory A
+
+I claim that gas stations sometimes charge more if there is a lack of competition in sight.
+
+```{r echo=FALSE}
+gasprices = read_csv("gasprices.csv", show_col_types = FALSE)
+
+ggplot(gasprices, aes(x = Competitors, y = Price, fill = Competitors)) +
+  geom_boxplot() +
+  labs(title = "Gas Prices by Competition", x = "Competition", y = "Price") +
+  scale_fill_manual(values = c("pink", "lightblue"))
+
+boot_diffmean_competitors = do(1000)*diffmean(ID ~ Competitors, data=resample(gasprices))
+conf_diffmean_competitors = confint(boot_diffmean_competitors, level = 0.95)
+```
+
+Based on these boxplots, we can see that when there is competition in sight, the price reaches the same low as if there isn't any competition, but if there is not any competition, we can see that the boxplot covers a larger range. Using confidence intervals, we can see that we are 95% confident the mean lies between `r conf_diffmean_competitors$lower` and `r conf_diffmean_competitors$upper`, so there is likely no difference in price because 0 is included.
+
+## Theory B
+
+I claim that the richer an area is, the higher its price will be
+
+```{r echo=FALSE}
+ggplot(gasprices, aes(x = Income, y = Price)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Scatter Plot of Gas Prices vs. Median Household Income", x = "Median Household Income", y = "Gas Price")
+```
+
+We can see that this graph has a correlation coefficient of `r cor(gasprices$Income, gasprices$Price)`, meaning there is a positive relation between median household income and gas price, saying that if household income increases, so do gas prices.
+
+## Theory C
+
+I claim that gas prices at a stoplight do charge more than those not at a stoplight.
+
+```{r echo=FALSE}
+ggplot(gasprices, aes(x = Stoplight, y = Price, fill = Stoplight)) +
+  geom_boxplot() +
+  labs(title = "Gas Prices by Stoplight Presence", x = "Stoplight", y = "Gas Prices") +
+  scale_fill_manual(values = c("red", "green"))
+
+boot_diffmean_stoplight = do(1000)*diffmean(ID ~ Stoplight, data=resample(gasprices))
+conf_diffmean_stoplight = confint(boot_diffmean_stoplight, level = 0.95)
+```
+
+We can see from the graphs that gas stations not at a stoplight have a lower median, but a higher maximum and larger range. Using confidence intervals, we can see that we are 95% confident the mean lies between `r conf_diffmean_stoplight$lower` and `r conf_diffmean_stoplight$upper`, so there is likely no difference in price because 0 is included.
+
+## Theory D
+
+I claim that gas stations with direct highway access charge more than those that do not.
+
+```{r echo=FALSE}
+ggplot(gasprices, aes(x = Highway, y = Price, fill = Highway)) +
+  geom_boxplot() +
+  labs(title = "Gas Prices by Highway Access", x = "Highway Access", y = "Gas Prices") +
+  scale_fill_manual(values = c("brown", "tan"))
+
+boot_diffmean_highway = do(1000)*diffmean(ID ~ Highway, data=resample(gasprices))
+conf_diffmean_highway = confint(boot_diffmean_highway, level = 0.95)
+```
+
+From the boxplots, we can see that gas stations with highway access have a higher median and maximum than stations without highway access. Using confidence intervals, we can see that we are 95% confident the mean lies between `r conf_diffmean_highway$lower` and `r conf_diffmean_highway$upper`, so there is likely no difference in price because 0 is included.
+
+## Theory E
+
+I claim shell does not charge more than other brands.
+
+```{r echo=FALSE}
+gasprices_subset <- gasprices %>%
+  mutate(Brand_Group = ifelse(Brand == "Shell", "Shell", "Non-Shell")) %>%
+  group_by(Brand_Group)
+
+ggplot(gasprices_subset, aes(x = Brand_Group, y = Price, fill = Brand_Group)) +
+  geom_boxplot() +
+  labs(title = "Price Comparison: Shell vs. Non-Shell", x = "Brand", y = "Price") +
+  scale_fill_manual(values = c("orange", "white"))
+
+boot_diffmean_shells = do(1000)*diffmean(ID ~ Brand_Group, data=resample(gasprices_subset))
+conf_diffmean_shells = confint(boot_diffmean_shells, level = 0.95)
+```
+
+From these boxplots, we can see that the boxplot of shell has a larger range, but a lower maximum. Using confidence intervals, we can see that we are 95% confident the mean lies between `r conf_diffmean_shells$lower` and `r conf_diffmean_shells$upper`, so there is likely no difference in price because 0 is included.
+
+# Problem 2
+
+## Part A
+
+```{r echo=FALSE}
+sclass = read_csv("sclass.csv", show_col_types = FALSE)
+
+filtered_sclass_a <- sclass %>%
+  filter(year == 2011, trim == "63 AMG")
+
+boot_mean_mileage_a = do(1000) * mean(mileage ~ 1, data = resample(filtered_sclass_a))
+conf_mean_mileage_a = confint(boot_mean_mileage_a$X1, level = 0.95)
+```
+
+I am 95% confident that the true mean mileage for 2011 S-Class 63 AMGs lies between `r round(conf_mean_mileage_a[1], 2)` and `r round(conf_mean_mileage_a[2], 2)`.
+
+## Part B
+
+```{r echo=FALSE}
+filtered_sclass_b <- sclass %>%
+  filter(year == 2014, trim == "550")
+
+filtered_sclass_b <- filtered_sclass_b %>%
+  mutate(isBlack = ifelse(color == "Black", TRUE, FALSE))
+
+boot_prop_black = do(1000) * prop(isBlack ~ 1, data=resample(filtered_sclass_b))
+conf_prop_black = confint(boot_prop_black, level = 0.95)
+```
+
+I am 95% confident that the true proportion of black for 2014 S-Class 550 trim cars lies between `r round(conf_prop_black$lower, 4)` and `r round(conf_prop_black$upper, 4)`.
+
+# Problem 3
+
+## Part A
+
+```{r echo=FALSE}
+pilotsurvey = read_csv("nbc_pilotsurvey.csv", show_col_types = FALSE)
+
+filtered_pilotsurvey_a <- pilotsurvey %>%
+  filter(Show %in% c("Living with Ed", "My Name is Earl"))
+
+boot_diffmean_edearl = do(1000) * diffmean(Q1_Happy ~ Show, data=resample(filtered_pilotsurvey_a))
+conf_diffmean_edearl = confint(boot_diffmean_edearl, level = 0.95)
+```
+
+1) I am trying to find which show makes people happier, Living with Ed, or My Name is Earl.
+2) I used bootstrapping for the difference in means and then confint to find a 95% confidence interval
+3) We are 95% confident the true difference in means lies between `r conf_diffmean_edearl$lower` and `r conf_diffmean_edearl$upper`
+4) Based on these results, since 0 is included in this range there is not evidence that these two shows provide the user with more happiness than the other
+
+## Part B
+
+```{r echo=FALSE}
+filtered_pilotsurvey_b <- pilotsurvey %>%
+  filter(Show %in% c("The Biggest Loser", "The Apprentice: Los Angeles"))
+
+boot_diffmean_loserLA = do(1000) * diffmean(Q1_Annoyed ~ Show, data=resample(filtered_pilotsurvey_b))
+conf_diffmean_loserLA = confint(boot_diffmean_loserLA, level = 0.95)
+```
+
+1) I am trying to find which show makes people more annoyed, The Biggest Loser, or The Apprentice Los Angeles
+2) I used bootstrapping for the difference in means and then confidence int to find a 95% confidence interval
+3) We are 95% confident the true difference in means lies between `r conf_diffmean_loserLA$lower` and `r conf_diffmean_loserLA$upper`
+4) Based on these results, since 0 is not included in this range there is evidence that The Apprentice: Los Angeles makes people more annoyed than The Biggest Loser
+
+## Part C
+
+```{r echo=FALSE}
+filtered_pilotsurvey_c <- pilotsurvey %>%
+  filter(Show == "Dancing with the Stars")
+
+boot_prop_stars = do(1000) * (sum(resample(filtered_pilotsurvey_c$Q2_Confusing) >= 4) / nrow(resample(filtered_pilotsurvey_c)))
+
+conf_prop_stars = confint(boot_prop_stars, level = 0.95)
+```
+
+1) We are trying to find what proportion of American TV watchers would we expect to give a response of 4 or greater to the “Q2_Confusing” question?
+2) I used bootstrapping to find the proportion of watchers gave a 4 or greater, and a confidence interval to find the upper and lower bounds of the true proportion
+3) We are 95% confident the true proportion lies between `r conf_prop_stars$lower` and `r conf_prop_stars$upper`
+4) We can determine that the true mean will lie between these bounds, so this is the proportion of viewers we would expect to give this answer
+
+# Problem 4
+
+```{r echo=FALSE}
+ebay = read_csv("ebay.csv", show_col_types = FALSE)
+
+ebay <- ebay %>%
+  mutate(rev_ratio = rev_after / rev_before)
+
+boot_diffratio_ebay = do(10000) * diffmean(rev_ratio ~ adwords_pause, data=resample(ebay))
+conf_diffratio_ebay = confint(boot_diffratio_ebay, level = 0.95)
+```
+
+1) We are trying to find whether the revenue ratio is the same in the treatment and control groups or not
+2) I used bootstrapping to find 10000 differences between the means of those who experienced ads or not
+3) I found that we are 95% confident the true mean lies between `r round(conf_diffratio_ebay$lower, 4)` and `r round(conf_diffratio_ebay$upper, 4)`
+4) Since 0 is not included in these results, we can be 95% confident that DMAs in the treatment group generated more revenue than those not in the treatment group
